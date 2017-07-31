@@ -519,10 +519,13 @@ class Model(metaclass=ModelBase):
         return hash(self.pk)
 
     def __reduce__(self):
-        data = self.__dict__
+        data = self.__getstate__()
         data[DJANGO_VERSION_PICKLE_KEY] = get_version()
         class_id = self._meta.app_label, self._meta.object_name
         return model_unpickle, (class_id,), data
+
+    def __getstate__(self):
+        return self.__dict__.copy()
 
     def __setstate__(self, state):
         msg = None

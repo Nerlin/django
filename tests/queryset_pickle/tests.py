@@ -5,7 +5,7 @@ from django.db import models
 from django.test import TestCase
 from django.utils.version import get_version
 
-from .models import Container, Event, Group, Happening, M2MModel
+from .models import Container, Event, Group, Happening, M2MModel, QueueItem
 
 
 class PickleabilityTestCase(TestCase):
@@ -65,6 +65,16 @@ class PickleabilityTestCase(TestCase):
         reloaded = pickle.loads(dumped)
         self.assertEqual(original, reloaded)
         self.assertEqual(original.somefield, reloaded.somefield)
+
+    def test_model_pickle_with_ignoring_fields(self):
+        """
+        Test that developer can choose what fields he needs to pickle
+        by defining __getstate__ method.
+        """
+        model = QueueItem.objects.create()
+        dumped = pickle.dumps(model)
+        reloaded = pickle.loads(dumped)
+        self.assertNotEqual(model.order, reloaded.order)
 
     def test_model_pickle_m2m(self):
         """

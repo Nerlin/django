@@ -57,3 +57,24 @@ class Container:
 
 class M2MModel(models.Model):
     groups = models.ManyToManyField(Group)
+
+
+class QueueItem(models.Model):
+    """
+    Registers how many times objects of this model were created and
+    gives them special numbers by they order. Emulates some logic that
+    shouldn't be pickled for
+    'PickleabilityTestCase.test_model_pickle_with_ignoring_fields'.
+    """
+    registered = 0
+
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls, *args, **kwargs)
+        QueueItem.registered += 1
+        instance.order = QueueItem.registered
+        return instance
+
+    def __getstate__(self):
+        state = super(QueueItem, self).__getstate__()
+        del state['order']
+        return state
